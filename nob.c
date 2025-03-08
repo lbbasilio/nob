@@ -11,7 +11,7 @@ typedef struct {
 } Nob_Cmd;
 
 #define nob_cmd_append(cmd, ...) _nob_cmd_append(cmd, __VA_ARGS__, NULL)
-static bool _nob_cmd_append(Nob_Cmd* cmd, ...)
+static void _nob_cmd_append(Nob_Cmd* cmd, ...)
 {
 	va_list arg_list;
 	va_start(arg_list, cmd);
@@ -21,9 +21,9 @@ static bool _nob_cmd_append(Nob_Cmd* cmd, ...)
 		size_t len = strlen(token);
 		if (cmd->len + len + 1 > NOB_MAX_LEN)
 		{
-			printf("[ERROR] Command exceeds maximum length\n");
+			printf("[ERROR] Command exceeds maximum length\n%s", cmd->str);
 			va_end(arg_list);
-			return false;
+			exit(1);
 		}
 
 		if (cmd->len > 0) 
@@ -35,10 +35,16 @@ static bool _nob_cmd_append(Nob_Cmd* cmd, ...)
 	}
 
 	va_end(arg_list);
-	return true;
+	return;
 }
 
-static bool run_command(Nob_Cmd* cmd)
+static void nob_cmd_set(Nob_Cmd* cmd)
+{
+	cmd->str[0] = '\0';
+	cmd->len = 0;
+}
+
+static bool nob_cmd_run(Nob_Cmd* cmd)
 {
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
@@ -111,7 +117,7 @@ int main()
 {
 	Nob_Cmd cmd = {0};
 	nob_cmd_append(&cmd, "gcc", "-Wall", "main.c");
-	if (!run_command(&cmd))
+	if (!nob_cmd_run(&cmd))
 		return 1;
 	return 0;
 }
